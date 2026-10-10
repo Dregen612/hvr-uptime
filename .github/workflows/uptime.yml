@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: ./check.sh
-        env: {TG_TOKEN: "${{ secrets.TG_TOKEN }}", TG_CHAT: "${{ secrets.TG_CHAT }}"}
+        env: {TG_TOKEN: "${{ secrets.TG_TOKEN }}", TG_CHAT: "${{ secrets.TG_CHAT }}", GH_TOKEN: "${{ github.token }}"}
       - run: |
           if ! git diff --quiet; then git config user.name uptime-bot; git config user.email uptime@users.noreply.github.com
           git commit -qam "state" && git push -q; fi
