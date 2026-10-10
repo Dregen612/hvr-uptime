@@ -2,7 +2,8 @@
 # Off-site check (GitHub, every 5 min). Reads the heartbeat the old Mini publishes every 5 min.
 # Alerts Adam on Telegram after 5+ min down: heartbeat stale (power/internet out) or YouTube not live.
 GIST=264164455a4e5fa12f3b28a43a6af69d; NOW=$(date +%s)
-J=$(curl -s -m 20 -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/gists/$GIST" | python3 -c "import json,sys;print(json.load(sys.stdin)['files']['hb.json']['content'])" 2>/dev/null)
+J=$(curl -s -m 20 "https://gist.githubusercontent.com/Dregen612/$GIST/raw/hb.json?t=$NOW")
+echo "$J" | python3 -c "import json,sys;json.load(sys.stdin)" 2>/dev/null || J=""
 [ -z "$J" ] && { echo "gist unreadable - no alert"; exit 0; }
 TS=$(echo "$J" | python3 -c "import json,sys;print(json.load(sys.stdin)['ts'])")
 YT=$(echo "$J" | python3 -c "import json,sys;print(json.load(sys.stdin)['youtube'])")
