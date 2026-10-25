@@ -41,6 +41,11 @@ tg(){ [ -z "$TG_TOKEN" ] && { echo "(no TG_TOKEN) would send: $1"; return; }
       curl -s -m 20 -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" -d chat_id="$TG_CHAT" --data-urlencode "text=$1" >/dev/null; }
 
 if [ -z "$REASON" ]; then
+  # No outage reason is not proof of recovery. Require public live evidence or
+  # a fresh heartbeat reporting live; otherwise preserve all state and timers.
+  if [ "$PUB" != live ] && ! { [ "$YT" = live ] && [ "$AGE" -ge 0 ] && [ "$AGE" -lt 20 ]; }; then
+    echo "UNKNOWN age=${AGE}m yt=$YT public=$PUB (state preserved)"; exit 0
+  fi
   if [ "$st" = down ] && [ "$last" != 0 ]; then
     tg "✅ HVR stream confirmed live again on YouTube (same link). First bad reading was at $(ct $since)."
   fi
@@ -51,7 +56,7 @@ if [ "$st" = up ]; then
   # first bad reading: don't alert yet, just remember it
   echo "suspect $NOW 0" > state.txt; echo "SUSPECT (no alert yet): $REASON"; exit 0
 fi
-# second (or later) consecutive bad reading = confirmed
+# second (or later) bad reading without positive recovery = confirmed
 if [ "$last" = 0 ] || [ $(( NOW-last )) -ge 3600 ]; then
   tg "🔴 HVR stream problem (confirmed twice): $REASON. Checked from outside your house. $LINK"; last=$NOW
 fi
